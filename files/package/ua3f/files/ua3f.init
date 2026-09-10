@@ -1,0 +1,17 @@
+#!/bin/sh /etc/rc.common
+START=99
+STOP=10
+
+USE_PROCD=1
+
+start_service() {
+	uci_load ua3f
+	enabled=$(uci get ua3f.enabled.enabled)
+	if [ "$enabled" != "1" ]; then
+		return 0
+	fi
+	procd_open_instance
+	procd_set_param command /usr/bin/ua3f
+	procd_set_param respawn
+	procd_close_instance
+}
