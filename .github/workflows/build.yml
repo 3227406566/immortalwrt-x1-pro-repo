@@ -7,21 +7,19 @@ jobs:
     runs-on: ubuntu-22.04
     timeout-minutes: 360
     steps:
-      - name: Checkout 当前仓库（你的补丁、.config）
+      - name: 检出本仓库（补丁与配置文件）
         uses: actions/checkout@v4
-        name: 检出本仓库文件
         with:
           path: myrepo
 
-      - name: 下载 ImmortalWrt 源码
+      - name: 拉取ImmortalWrt源码
         uses: actions/checkout@v4
-        name: 拉取ImmortalWrt源码
         with:
           repository: immortalwrt/immortalwrt
           ref: master
           path: openwrt
 
-      - name: 复制补丁、UA3F包、.config 到源码目录
+      - name: 复制补丁、UA3F包、.config到源码目录
         run: |
           cp -r $GITHUB_WORKSPACE/myrepo/files/* $GITHUB_WORKSPACE/openwrt/
           cp $GITHUB_WORKSPACE/myrepo/.config $GITHUB_WORKSPACE/openwrt/.config
