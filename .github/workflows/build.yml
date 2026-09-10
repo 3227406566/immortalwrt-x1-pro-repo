@@ -4,17 +4,40 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     timeout-minutes: 360
     steps:
-      - name: Checkout
+      - name: 拉取源码
         uses: actions/checkout@v4
-
-      - name: Build OpenWrt
-        uses: make-openwrt/make-openwrt@main
         with:
-          repo: immortalwrt/immortalwrt
-          branch: master
-          target: mediatek/filogic
-          config: .config
-          files: files
+          repository: immortalwrt/immortalwrt
+          ref: master
+          path: immortalwrt
+
+      - name: 复制仓库内自定义文件（补丁、UA3F包）
+        run: |
+          cp -r $GITHUB_WORKSPACE/files/* $GITHUB_WORKSPACE/immortalwrt/
+          cp $GITHUB_WORKSPACE/.config $GITHUB_WORKSPACE/immortalwrt/.config
+
+      - name: 安装依赖
+        run: |
+          cd $GITHUB_WORKSPACE/immortalwrt
+          sudo apt update
+          sudo apt install -y build-essential libncurses-dev gawk flex bison openssl libssl-dev dkms libelf-dev libudev-dev libpci-dev libiberty-dev autoconf git
+
+      - name: 更新 feeds
+        run: |
+          cd $GITHUB_WORKSPACE/immortalwrt
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
+
+      - name: 编译固件
+        run: |
+          cd $GITHUB_WORKSPACE/immortalwrt
+          make -j$(nproc)
+      
+      - name: 上传固件成品
+        uses: actions/upload-artifact@v4
+        with:
+          name: ImmortalWrt-X1Pro
+          path: $GITHUB_WORKSPACE/immortalwrt/bin/targets/mediatek/filogic/
