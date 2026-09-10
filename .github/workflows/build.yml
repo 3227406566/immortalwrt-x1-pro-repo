@@ -36,9 +36,16 @@ jobs:
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
+      - name: 生成配置（非交互，跳过menuconfig）
+        run: |
+          cd $GITHUB_WORKSPACE/openwrt
+          export TERM=xterm
+          make defconfig
+
       - name: 开始编译固件
         run: |
           cd $GITHUB_WORKSPACE/openwrt
+          export TERM=xterm
           make -j$(nproc)
 
       - name: 上传编译好的固件
