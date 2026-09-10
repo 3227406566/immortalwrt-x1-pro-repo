@@ -7,16 +7,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 360
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Build OpenWrt
-        uses: ophub/amlogic-s9xxx-openwrt@main
+        uses: make-openwrt/make-openwrt@main
         with:
-          mode: single
-          openwrt_board: mediatek/filogic
-          kernel_repo: immortalwrt/immortalwrt
-          kernel_branch: master
-          kernel_commit: 88e20a065f860c00928282f38408232818281887
-          custom_files: files
-          custom_config: .config
+          repo: immortalwrt/immortalwrt
+          branch: master
+          target: mediatek/filogic
+          config: .config
+          files: files
