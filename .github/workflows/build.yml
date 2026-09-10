@@ -1,32 +1,50 @@
 name: Build ImmortalWrt for Oray X1 Pro
-
 on:
   workflow_dispatch:
-
-env:
-  REPO_URL: https://github.com/immortalwrt/immortalwrt.git
-  REPO_BRANCH: master
-  FEEDS_CONF: feeds.conf.default
-  CONFIG_FILE: .config
-  DIY_P1_SH: diy-part1.sh
-  DIY_P2_SH: diy-part2.sh
-  UPLOAD_BIN_DIR: true
 
 jobs:
   build:
     runs-on: ubuntu-22.04
     timeout-minutes: 360
     steps:
-      - name: Checkout
+      - name: Checkout 当前仓库（你的补丁、.config）
         uses: actions/checkout@v4
-
-      - name: Build ImmortalWrt
-        uses: P3TERX/Actions-OpenWrt@main
+        name: 检出本仓库文件
         with:
-          repo_url: ${{ env.REPO_URL }}
-          repo_branch: ${{ env.REPO_BRANCH }}
-          feeds_conf: ${{ env.FEEDS_CONF }}
-          config_file: ${{ env.CONFIG_FILE }}
-          diy_p1_sh: ${{ env.DIY_P1_SH }}
-          diy_p2_sh: ${{ env.DIY_P2_SH }}
-          upload_bin_dir: ${{ env.UPLOAD_BIN_DIR }}
+          path: myrepo
+
+      - name: 下载 ImmortalWrt 源码
+        uses: actions/checkout@v4
+        name: 拉取ImmortalWrt源码
+        with:
+          repository: immortalwrt/immortalwrt
+          ref: master
+          path: openwrt
+
+      - name: 复制补丁、UA3F包、.config 到源码目录
+        run: |
+          cp -r $GITHUB_WORKSPACE/myrepo/files/* $GITHUB_WORKSPACE/openwrt/
+          cp $GITHUB_WORKSPACE/myrepo/.config $GITHUB_WORKSPACE/openwrt/.config
+
+      - name: 安装编译依赖包
+        run: |
+          cd $GITHUB_WORKSPACE/openwrt
+          sudo apt update
+          sudo apt install -y build-essential libncurses-dev gawk flex bison openssl libssl-dev dkms libelf-dev libudev-dev libpci-dev libiberty-dev autoconf git python3 python3-pip
+
+      - name: 更新 & 安装 feeds
+        run: |
+          cd $GITHUB_WORKSPACE/openwrt
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
+
+      - name: 开始编译固件
+        run: |
+          cd $GITHUB_WORKSPACE/openwrt
+          make -j$(nproc)
+
+      - name: 上传编译好的固件
+        uses: actions/upload-artifact@v4
+        with:
+          name: ImmortalWrt-X1Pro-Firmware
+          path: $GITHUB_WORKSPACE/openwrt/bin/targets/mediatek/filogic/
