@@ -1,0 +1,146 @@
+diff --git a/target/linux/mediatek/dts/mt7981b-oray-x1-pro.dts b/target/linux/mediatek/dts/mt7981b-oray-x1-pro.dts
+new file mode 100644
+index 000000000000..920101242194
+--- /dev/null
++++ b/target/linux/mediatek/dts/mt7981b-oray-x1-pro.dts
+@@ -0,0 +1,145 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++
++#include "mt7981.dtsi"
++
++/ {
++	model = "Oray X1 Pro";
++	compatible = "oray,x1-pro", "mediatek,mt7981";
++
++	aliases {
++		led-boot = &led_power;
++		led-failsafe = &led_power;
++		led-running = &led_power;
++		led-upgrade = &led_power;
++	};
++
++	chosen {
++		bootargs = "console=ttyS0,115200n1";
++	};
++
++	leds {
++		compatible = "gpio-keys";
++
++		led_power: power {
++			gpios = <&pio 3 GPIO_ACTIVE_HIGH>;
++			default-state = "on";
++			label = "green:power";
++		};
++	};
++
++	keys {
++		compatible = "gpio-keys";
++
++		reset {
++			label = "reset";
++			gpios = <&pio 6 GPIO_ACTIVE_LOW>;
++			linux,code = <KEY_RESTART>;
++		};
++	};
++};
++
++&eth {
++	status = "okay";
++
++	gmac0: gmac0 {
++		compatible = "mediatek,eth-mac";
++		reg = <0>;
++		phy-mode = "2500base-x";
++		phy-handle = <&phy0>;
++	};
++
++	gmac1: gmac1 {
++		compatible = "mediatek,eth-mac";
++		reg = <1>;
++		phy-mode = "rgmii";
++		phy-handle = <&phy1>;
++	};
++};
++
++&mdio {
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		phy0: phy@4 {
++			reg = <4>;
++		};
++
++		phy1: phy@0 {
++			reg = <0>;
++		};
++};
++
++&spi0 {
++	status = "okay";
++
++	flash@0 {
++		compatible = "spi-nor";
++		reg = <0>;
++		spi-max-frequency = <50000000>;
++
++		partitions {
++			compatible = "fixed-partitions";
++			#address-cells = <1>;
++			#size-cells = <1>;
++
++			partition@0 {
++				label = "bl2";
++				reg = <0x0 0x20000>;
++				read-only;
++			};
++			partition@20000 {
++				label = "u-boot";
++				reg = <0x20000 0x50000>;
++				read-only;
++			};
++			partition@70000 {
++				label = "u-boot-env";
++				reg = <0x70000 0x10000>;
++			};
++			partition@80000 {
++				label = "factory";
++				reg = <0x80000 0x50000>;
++				read-only;
++			};
++			partition@d0000 {
++				label = "fip";
++				reg = <0xd0000 0xa00000>;
++			};
++			partition@ad0000 {
++				label = "ubi";
++				reg = <0xad0000 0xe900000>;
++			};
++		};
++	};
++};
++
++&wifi {
++	status = "okay";
++};
+diff --git a/target/linux/mediatek/image/filogic.mk b/target/linux/mediatek/image/filogic.mk
+index 4521a789a78..89d22408901 100644
+--- a/target/linux/mediatek/image/filogic.mk
++++ b/target/linux/mediatek/image/filogic.mk
+@@ -1293,6 +1293,17 @@ define Device/zte_zxhn-e500
+ endef
+ TARGET_DEVICES += zte_zxhn-e500
+ 
++define Device/oray_x1-pro
++  DEVICE_VENDOR := Oray
++  DEVICE_MODEL := X1 Pro
++  DEVICE_DTS := mt7981b-oray-x1-pro
++  DEVICE_DTS_DIR := ../dts
++  DEVICE_PACKAGES := kmod-mt7981-firmware mt7981-2.5g-firmware wpad-openssl
++  SUPPORTED_DEVICES += oray,x1-pro
++endef
++TARGET_DEVICES += oray_x1-pro
++
+ define Device/zyxel_ex5601-t0
+   DEVICE_VENDOR := Zyxel
+   DEVICE_MODEL := EX5601-T0
+   DEVICE_DTS := mt7981b-zyxel-ex5601-t0
